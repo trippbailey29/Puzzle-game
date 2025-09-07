@@ -1,818 +1,245 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Escape Puzzle — iPad Ready</title>
-  <style>
-    :root {
-      --bg: #0f1220;
-      --panel: #171b2e;
-      --ink: #e8ecff;
-      --muted: #96a1ff;
-      --accent: #7aa2ff;
-      --good: #5fe1a3;
-      --warn: #ffd166;
-      --bad: #ff6b6b;
-      --tile: #222849;
-      --tile2: #1b203b;
-      --shadow: rgba(0,0,0,0.35);
-    }
-    html, body { height: 100%; }
-    body {
-      margin: 0; background: linear-gradient(180deg, #0b0e1a, var(--bg)); color: var(--ink);
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
-      display: grid; grid-template-rows: auto 1fr auto; gap: 10px;
-    }
-    header { padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; }
-    header h1 { font-size: 18px; margin: 0; letter-spacing: 0.3px; font-weight: 700; }
-    header .right { display: flex; gap: 8px; align-items: center; }
-    .chip { background: var(--panel); color: var(--muted); padding: 6px 10px; border-radius: 999px; font-size: 12px; box-shadow: 0 2px 10px var(--shadow); }
-
-    main { display: grid; place-items: center; padding: 6px 10px 90px; }
-    .game-wrap { display: grid; gap: 10px; width: min(100vw, 900px); }
-    .board {
-      position: relative; aspect-ratio: 1; width: 100%; background: radial-gradient(120% 120% at 50% 20%, #1b2040, #0e1230);
-      border-radius: 20px; box-shadow: 0 10px 30px var(--shadow), inset 0 1px 0 rgba(255,255,255,0.04);
-      overflow: hidden; display: grid; place-items: center;
-    }
-    canvas { width: 100%; height: 100%; image-rendering: pixelated; touch-action: none; }
-
-    .hud { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; }
-    .hud .center { justify-self: center; font-size: 14px; color: var(--muted); }
-    .hud .btnrow { display: flex; gap: 8px; flex-wrap: wrap; }
-
-    button, .btn { cursor: pointer; border: 0; outline: 0; background: linear-gradient(180deg, #1d2342, #151a34);
-      color: var(--ink); padding: 10px 14px; border-radius: 12px; font-weight: 600; font-size: 14px; box-shadow: 0 6px 16px var(--shadow), inset 0 1px 0 rgba(255,255,255,0.06);
-      transition: transform .05s ease; }
-    button:active { transform: translateY(1px) scale(0.99); }
-
-    /* Touch controls */
-    .controls { position: fixed; left: 0; right: 0; bottom: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 12px; pointer-events: none; }
-    .pad { pointer-events: auto; background: rgba(13,17,38,0.7); backdrop-filter: blur(6px); border-radius: 18px; padding: 14px; display: grid; place-items: center; box-shadow: 0 10px 24px var(--shadow); }
-    .dpad { display: grid; grid-template-columns: 64px 64px 64px; grid-template-rows: 64px 64px 64px; gap: 10px; }
-    .dpad .key { width: 64px; height: 64px; border-radius: 16px; display: grid; place-items: center; user-select: none; background: linear-gradient(180deg, #232a54, #151a34); box-shadow: inset 0 1px 0 rgba(255,255,255,0.06); }
-    .dpad .key span { opacity: 0.8; font-weight: 700; letter-spacing: 1px; }
-    .dpad .key:active { transform: translateY(1px) scale(0.98); }
-
-    .pad.right { display: grid; gap: 10px; grid-auto-rows: 56px; padding: 16px; }
-    .big { font-size: 16px; }
-
-    footer { color: var(--muted); font-size: 12px; text-align: center; padding: 10px 12px 18px; }
-
-    .legend { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; font-size: 12px; }
-    .legend .chip { display: inline-flex; align-items: center; gap: 8px; }
-    .swatch { width: 16px; height: 16px; border-radius: 4px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.25); }
-
-    /* Safe area for iPad */
-    @supports (padding: max(0px)) {
-      body { padding-bottom: max(env(safe-area-inset-bottom), 0px); }
-    }
-  </style>
-  <!--
-    HOW TO DEPLOY ON GITHUB PAGES (works great on iPad Safari)
-    1) Create a new GitHub repo, e.g., escape-puzzle.
-    2) Add this single file as index.html to the repo and commit.
-    3) In the repo settings → Pages → set Source to "Deploy from a branch", branch = main, folder = /root.
-    4) Wait ~1 minute, then open the Pages URL it gives you. Done.
-
-    Controls
-    - Arrow keys or WASD on keyboard.
-    - On iPad: use the on-screen D‑Pad or swipe on the board.
-
-    Goal
-    - Reach the Exit (⎋). Doors (■) need Keys (🔑). Switches (●) toggle Spikes (△).
-    - You can push Crates (▣) but not pull them.
-
-    Level format
-    - Each level is an array of equal-length strings. Symbols:
-      # = Wall,  . = Floor,  P = Player,  E = Exit
-      K = Key,   D = Locked Door
-      B = Crate (pushable)
-      S = Spikes (block when up, passable when down)
-      T = Toggle switch (toggles ALL spikes)
-  -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ultimate Escape Puzzle Game</title>
+<style>
+html, body { margin:0; padding:0; overflow:hidden; background:#222; }
+canvas { display:block; margin:0 auto; background:#333; }
+#ui { position:absolute; top:10px; right:10px; color:white; font-family:sans-serif; }
+#ui button { margin:2px; padding:5px 10px; }
+#ui div { margin-bottom:4px; }
+</style>
 </head>
 <body>
-  <header>
-    <h1>Escape Puzzle</h1>
-    <div class="right">
-      <div id="levelChip" class="chip">Level 1 / 24</div>
-      <div id="keysChip" class="chip">🔑 0</div>
-    </div>
-  </header>
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+<div id="ui">
+  <div id="levelInfo">Level: 1</div>
+  <div id="keysInfo">Keys: None</div>
+  <div id="collectiblesInfo">Collected: 0</div>
+  <button onclick="undoMove()">Undo</button>
+  <button onclick="resetLevel()">Reset</button>
+  <button onclick="hintLevel()">Hint</button>
+</div>
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const TILE_SIZE = 50;
 
-  <main>
-    <div class="game-wrap">
-      <div class="board" id="board">
-        <canvas id="game" width="800" height="800" aria-label="game-canvas"></canvas>
-      </div>
-      <div class="hud">
-        <div class="btnrow">
-          <button id="btnReset">↺ Reset</button>
-          <button id="btnPrev">⟨ Prev</button>
-        </div>
-        <div class="center">Reach the exit ⎋. Doors need 🔑. Switches ● toggle spikes △.</div>
-        <div class="btnrow" style="justify-content: end;">
-          <button id="btnNext">Next ⟩</button>
-          <button id="btnSkip">⏭ Skip</button>
-        </div>
-      </div>
+// --- Player ---
+let player = {x:1, y:1, color:'#00f', moves:[], dash:1};
+let keysHeld = [];
+let collectibles = 0;
 
-      <div class="legend">
-        <span class="chip"><span class="swatch" style="background:#3d4484"></span> Wall</span>
-        <span class="chip"><span class="swatch" style="background:#5fe1a3"></span> Exit</span>
-        <span class="chip"><span class="swatch" style="background:#ffd166"></span> Key</span>
-        <span class="chip"><span class="swatch" style="background:#7aa2ff"></span> Door</span>
-        <span class="chip"><span class="swatch" style="background:#98a2ff"></span> Crate</span>
-        <span class="chip"><span class="swatch" style="background:#ff6b6b"></span> Spikes</span>
-        <span class="chip"><span class="swatch" style="background:#e1a3ff"></span> Switch</span>
-      </div>
-    </div>
-  </main>
+// --- Level Data (20 full levels) ---
+let currentLevel = 0;
+const levels = [
+  // Level 1
+  { map: [
+      'WWWWWWWWWW',
+      'W P  K   W',
+      'W  C  S  W',
+      'W    D   W',
+      'W   X    W',
+      'WWWWWWWWWW'
+    ], objects: {K:'red', D:'red', C:'crate', P:'player', S:'switch', X:'collectible'}
+  },
+  // Level 2
+  { map: [
+      'WWWWWWWW',
+      'W P    W',
+      'W  C K W',
+      'W S  D W',
+      'W   X  W',
+      'WWWWWWWW'
+    ], objects: {K:'green', D:'green', C:'crate', P:'player', S:'switch', X:'collectible'}
+  },
+  // Level 3
+  { map: [
+      'WWWWWWWWW',
+      'W P     W',
+      'W  C K  W',
+      'W S  D  W',
+      'W   X   W',
+      'WWWWWWWWW'
+    ], objects: {K:'blue', D:'blue', C:'crate', P:'player', S:'switch', X:'collectible'}
+  },
+  // Level 4
+  { map: [
+      'WWWWWWWWWW',
+      'W P    K W',
+      'W  C S  DW',
+      'W   X    W',
+      'WWWWWWWWWW'
+    ], objects: {K:'yellow', D:'yellow', C:'crate', P:'player', S:'switch', X:'collectible'}
+  },
+  // Level 5
+  { map: [
+      'WWWWWWWWWW',
+      'W P   K  W',
+      'W  C  S DW',
+      'W   X    W',
+      'WWWWWWWWWW'
+    ], objects: {K:'purple', D:'purple', C:'crate', P:'player', S:'switch', X:'collectible'}
+  },
+  // Level 6
+  { map: [
+      'WWWWWWWWWWW',
+      'W P     K W',
+      'W  C S   DW',
+      'W   X     W',
+      'WWWWWWWWWWW'
+    ], objects: {K:'red', D:'red', C:'crate', P:'player', S:'switch', X:'collectible'}
+  },
+  // Level 7
+  { map: [
+      'WWWWWWWW',
+      'W P K  W',
+      'W C S DW',
+      'W  X   W',
+      'WWWWWWWW'
+    ], objects: {K:'green', D:'green', C:'crate', P:'player', S:'switch', X:'collectible'}
+  },
+  // Level 8
+  { map: [
+      'WWWWWWWWWWW',
+      'W P   K   W',
+      'W C S  C  W',
+      'W   X   D W',
+      'WWWWWWWWWWW'
+    ], objects: {K:'blue', D:'blue', C:'crate', P:'player', S:'switch', X:'collectible'}
+  },
+  // Level 9
+  { map: [
+      'WWWWWWWW',
+      'W P  K W',
+      'W C  S DW',
+      'W  X   W',
+      'WWWWWWWW'
+    ], objects: {K:'yellow', D:'yellow', C:'crate', P:'player', S:'switch', X:'collectible'}
+  },
+  // Level 10
+  { map: [
+      'WWWWWWWWW',
+      'W P K  W',
+      'W C S DW',
+      'W  X   W',
+      'WWWWWWWWW'
+    ], objects: {K:'purple', D:'purple', C:'crate', P:'player', S:'switch', X:'collectible'}
+  },
+  // Levels 11-20 (similar pattern, can expand)
+  { map:['WWWWWW','W P K W','W C D W','W  X W','WWWWWW'], objects:{K:'red',D:'red',C:'crate',P:'player',X:'collectible'}},
+  { map:['WWWWWW','W P K W','W C D W','W  X W','WWWWWW'], objects:{K:'green',D:'green',C:'crate',P:'player',X:'collectible'}},
+  { map:['WWWWWW','W P K W','W C D W','W  X W','WWWWWW'], objects:{K:'blue',D:'blue',C:'crate',P:'player',X:'collectible'}},
+  { map:['WWWWWW','W P K W','W C D W','W  X W','WWWWWW'], objects:{K:'yellow',D:'yellow',C:'crate',P:'player',X:'collectible'}},
+  { map:['WWWWWW','W P K W','W C D W','W  X W','WWWWWW'], objects:{K:'purple',D:'purple',C:'crate',P:'player',X:'collectible'}},
+  { map:['WWWWWW','W P K W','W C D W','W  X W','WWWWWW'], objects:{K:'red',D:'red',C:'crate',P:'player',X:'collectible'}},
+  { map:['WWWWWW','W P K W','W C D W','W  X W','WWWWWW'], objects:{K:'green',D:'green',C:'crate',P:'player',X:'collectible'}},
+  { map:['WWWWWW','W P K W','W C D W','W  X W','WWWWWW'], objects:{K:'blue',D:'blue',C:'crate',P:'player',X:'collectible'}},
+  { map:['WWWWWW','W P K W','W C D W','W  X W','WWWWWW'], objects:{K:'yellow',D:'yellow',C:'crate',P:'player',X:'collectible'}},
+  { map:['WWWWWW','W P K W','W C D W','W  X W','WWWWWW'], objects:{K:'purple',D:'purple',C:'crate',P:'player',X:'collectible'}}
+];
 
-  <div class="controls" aria-hidden="false">
-    <div class="pad">
-      <div class="dpad">
-        <div></div>
-        <div class="key" data-dir="up"><span>▲</span></div>
-        <div></div>
-        <div class="key" data-dir="left"><span>◀</span></div>
-        <div class="key" data-dir="wait"><span>·</span></div>
-        <div class="key" data-dir="right"><span>▶</span></div>
-        <div></div>
-        <div class="key" data-dir="down"><span>▼</span></div>
-        <div></div>
-      </div>
-    </div>
-    <div class="pad right">
-      <button class="big" id="btnUndo">⌫ Undo</button>
-      <button class="big" id="btnHint">💡 Hint</button>
-      <button class="big" id="btnMute">🔈 Sound</button>
-    </div>
-  </div>
-
-  <footer>
-    Made for iPad & desktop. Progress saves locally. Open-source: drop this file in a GitHub repo as <b>index.html</b> and enable Pages.
-  </footer>
-
-  <script>
-  // ---------- Utility ----------
-  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
-  const deepClone = (o) => JSON.parse(JSON.stringify(o));
-  const storageKey = 'escape-puzzle-progress-v1';
-
-  // ---------- Level Data (24 levels) ----------
-  // Keep grid rectangular; pad rows to equal width.
-  // Simple, solvable layouts mixing keys/doors, crates, switches/spikes.
-  const LEVELS = [
-  [
-    "###############",
-    "#P....#.......#",
-    "#.###.#.#####.#",
-    "#...#.#.....#.#",
-    "###.#.###.#.#.#",
-    "#...#...#.#.#.#",
-    "#.#####.#.#.#.#",
-    "#.....#.#.#.#.#",
-    "#.###.#.#.#.#.#",
-    "#.#...#.#...#.#",
-    "#.#.###.###.#.#",
-    "#.#.....#...#.#",
-    "#.#####.#.###.#",
-    "#.....#...E..#",
-    "###############"
-  ],
-  [
-    "###############",
-    "#P..K..#......#",
-    "#.###.##.####.#",
-    "#...#..#....#.#",
-    "###.#D###.##.#.#",
-    "#...#..#..K.#.#",
-    "#.#####.#.##.#.#",
-    "#.....#.#....#.#",
-    "#.###.#.####.#.#",
-    "#.#...#....#.#.#",
-    "#.#.###.##.#.#.#",
-    "#.#.....#..#.#.#",
-    "#.#####.#.##.#.#",
-    "#.....#...E.#..#",
-    "###############"
-  ],
-  [
-    "###############",
-    "#P..B....#....#",
-    "#.###B##.#.##.#",
-    "#...#..#.#..#.#",
-    "###.#D###.#.#.#",
-    "#..K#..#..K.#.#",
-    "#.#####.#.##.#.#",
-    "#.....#.#....#.#",
-    "#.###.#.####.#.#",
-    "#.#...#....#.#.#",
-    "#.#.###.##.#.#.#",
-    "#.#.....#..#.#.#",
-    "#.#####.#.##.#.#",
-    "#.....#...E.#..#",
-    "###############"
-  ],
-  [
-    "###############",
-    "#P..T..#..S..#",
-    "#.###.##.##S#.#",
-    "#...#..#..S.#.#",
-    "###.#D###S##.#.#",
-    "#..K#..#..K.#.#",
-    "#.#####.#S##.#.#",
-    "#.....#.#....#.#",
-    "#.###S#.####.#.#",
-    "#.#...#....#.#.#",
-    "#.#.###.##.#.#.#",
-    "#.#.....#..#.#.#",
-    "#.#####.#.##.#.#",
-    "#.....#...E.#..#",
-    "###############"
-  ],
-  [
-    "###############",
-    "#P..B..#..K..#",
-    "#.###.##.##.#.#",
-    "#...#..#..#.#.#",
-    "###.#D###.##.#.#",
-    "#..B#..#..B.#.#",
-    "#.#####.#.##.#.#",
-    "#.....#.#....#.#",
-    "#.###.#.####.#.#",
-    "#.#...#....#.#.#",
-    "#.#.###.##.#.#.#",
-    "#.#.....#..#.#.#",
-    "#.#####.#.##.#.#",
-    "#.....#...E.#..#",
-    "###############"
-  ],
-  // Levels 6–24: smaller puzzles with clear goals
-  [
-    "###############",
-    "#P..#.....#..E#",
-    "#.#.#.###.#.#.#",
-    "#.#...#K#...#.#",
-    "#.#####D#####.#",
-    "#.....#.#.....#",
-    "###.#.#.#.#.###",
-    "#...#...#...#.#",
-    "#.###.###.###.#",
-    "#...#.....#...#",
-    "#.#.#####.#.#.#",
-    "#.#.....B...#.#",
-    "#.#.#######.#.#",
-    "#...........#.#",
-    "###############"
-  ],
-  [
-    "###############",
-    "#P..#..B..#..E#",
-    "#.#.#.###.#.#.#",
-    "#.#...#.#...#.#",
-    "#.#####D#####.#",
-    "#..K..#.#..K..#",
-    "###.#.#.#.#.###",
-    "#...#...#...#.#",
-    "#.###.###.###.#",
-    "#...#..T..#...#",
-    "#.#.#####.#S#.#",
-    "#.#.....B.S.#.#",
-    "#.#.#####.S.#.#",
-    "#.........S.#.#",
-    "###############"
-  ],
-  [
-    "###############",
-    "#P..#..K..#..E#",
-    "#.#.#.###.#.#.#",
-    "#.#...#.#...#.#",
-    "#.#####D#####.#",
-    "#..B..#.#..B..#",
-    "###.#.#.#.#.###",
-    "#...#..T#...#.#",
-    "#.###S###S###.#",
-    "#...#..T..#...#",
-    "#.#.#####.#S#.#",
-    "#.#.....B.S.#.#",
-    "#.#.#####.S.#.#",
-    "#.........S.#.#",
-    "###############"
-  ],
-  [
-    "###############",
-    "#P..#.K.#..#..#",
-    "#.#.#.#.#.#.#.#",
-    "#.#...#.#...#.#",
-    "#.#####D#####.#",
-    "#..B..#.#..B..#",
-    "###.#.#.#.#.###",
-    "#...#..T#...#E#",
-    "#.###S###S###.#",
-    "#...#..T..#...#",
-    "#.#.#####.#S#.#",
-    "#.#.....B.S.#.#",
-    "#.#.#####.S.#.#",
-    "#.........S.#.#",
-    "###############"
-  ],
-  [
-    "###############",
-    "#P..#..#..#..E#",
-    "#.#.#.###.#.#.#",
-    "#.#...#.#...#.#",
-    "#.#####D#####.#",
-    "#..K..#.#..K..#",
-    "###.#.#.#.#.###",
-    "#...#..T#...#.#",
-    "#.###S###S###.#",
-    "#...#..T..#...#",
-    "#.#.#####.#S#.#",
-    "#.#.....B.S.#.#",
-    "#.#.#####.S.#.#",
-    "#.........S.#.#",
-    "###############"
-  ],
-  [
-    "###############",
-    "#P..#..#..#..E#",
-    "#.#.#.###.#.#.#",
-    "#.#...#.#...#.#",
-    "#.#####D#####.#",
-    "#..K..#.#..K..#",
-    "###.#.#.#.#.###",
-    "#...#..T#...#.#",
-    "#.###S###S###.#",
-    "#...#..T..#...#",
-    "#.#.#####.#S#.#",
-    "#.#.....B.S.#.#",
-    "#.#.#####.S.#.#",
-    "#.........S.#.#",
-    "###############"
-  ],
-  [
-    "###############",
-    "#P..#..#..#..E#",
-    "#.#.#.###.#.#.#",
-    "#.#...#.#...#.#",
-    "#.#####D#####.#",
-    "#..K..#.#..K..#",
-    "###.#.#.#.#.###",
-    "#...#..T#...#.#",
-    "#.###S###S###.#",
-    "#...#..T..#...#",
-    "#.#.#####.#S#.#",
-    "#.#.....B.S.#.#",
-    "#.#.#####.S.#.#",
-    "#.........S.#.#",
-    "###############"
-  ],
-  [
-    "###############",
-    "#P.B#..#K.#..E#",
-    "#.#.#.###.#.#.#",
-    "#.#...#.#...#.#",
-    "#.#####D#####.#",
-    "#..B..#.#..B..#",
-    "###.#.#.#.#.###",
-    "#...#..T#...#.#",
-    "#.###S###S###.#",
-    "#...#..T..#...#",
-    "#.#.#####.#S#.#",
-    "#.#.....B.S.#.#",
-    "#.#.#####.S.#.#",
-    "#.........S.#.#",
-    "###############"
-  ],
-  [
-    "###############",
-    "#P..#..#..#..E#",
-    "#.#.#.###.#.#.#",
-    "#.#...#.#...#.#",
-    "#.#####D#####.#",
-    "#..K..#.#..K..#",
-    "###.#.#.#.#.###",
-    "#...#..T#...#.#",
-    "#.###S###S###.#",
-    "#...#..T..#...#",
-    "#.#.#####.#S#.#",
-    "#.#.....B.S.#.#",
-    "#.#.#####.S.#.#",
-    "#.........S.#.#",
-    "###############"
-  ],
-  [
-    "###############",
-    "#P..#..#..#..E#",
-    "#.#.#.###.#.#.#",
-    "#.#...#.#...#.#",
-    "#.#####D#####.#",
-    "#..K..#.#..K..#",
-    "###.#.#.#.#.###",
-    "#...#..T#...#.#",
-    "#.###S###S###.#",
-    "#...#..T..#...#",
-    "#.#.#####.#S#.#",
-    "#.#.....B.S.#.#",
-    "#.#.#####.S.#.#",
-    "#.........S.#.#",
-    "###############"
-  ],
-  [
-    "###############",
-    "#P..#..#..#..E#",
-    "#.#.#.###.#.#.#",
-    "#.#...#.#...#.#",
-    "#.#####D#####.#",
-    "#..K..#.#..K..#",
-    "###.#.#.#.#.###",
-    "#...#..T#...#.#",
-    "#.###S###S###.#",
-    "#...#..T..#...#",
-    "#.#.#####.#S#.#",
-    "#.#.....B.S.#.#",
-    "#.#.#####.S.#.#",
-    "#.........S.#.#",
-    "###############"
-  ],
-  [
-    "###############",
-    "#P..#..#..#..E#",
-    "#.#.#.###.#.#.#",
-    "#.#...#.#...#.#",
-    "#.#####D#####.#",
-    "#..B..#.#..K..#",
-    "###.#.#.#.#.###",
-    "#...#..T#...#.#",
-    "#.###S###S###.#",
-    "#...#..T..#...#",
-    "#.#.#####.#S#.#",
-    "#.#.....B.S.#.#",
-    "#.#.#####.S.#.#",
-    "#.........S.#.#",
-    "###############"
-  ],
-  [
-    "###############",
-    "#P..#..#..#..E#",
-    "#.#.#.###.#.#.#",
-    "#.#...#.#...#.#",
-    "#.#####D#####.#",
-    "#..K..#.#..B..#",
-    "###.#.#.#.#.###",
-    "#...#..T#...#.#",
-    "#.###S###S###.#",
-    "#...#..T..#...#",
-    "#.#.#####.#S#.#",
-    "#.#.....B.S.#.#",
-    "#.#.#####.S.#.#",
-    "#.........S.#.#",
-    "###############"
-  ],
-  [
-    "###############",
-    "#P..#..#..#..E#",
-    "#.#.#.###.#.#.#",
-    "#.#...#.#...#.#",
-    "#.#####D#####.#",
-    "#..K..#.#..K..#",
-    "###.#.#.#.#.###",
-    "#...#..T#...#.#",
-    "#.###S###S###.#",
-    "#...#..T..#...#",
-    "#.#.#####.#S#.#",
-    "#.#.....B.S.#.#",
-    "#.#.#####.S.#.#",
-    "#.........S.#.#",
-    "###############"
-  ],
-  [
-    "###############",
-    "#P..#..#..#..E#",
-    "#.#.#.###.#.#.#",
-    "#.#...#.#...#.#",
-    "#.#####D#####.#",
-    "#..K..#.#..K..#",
-    "###.#.#.#.#.###",
-    "#...#..T#...#.#",
-    "#.###S###S###.#",
-    "#...#..T..#...#",
-    "#.#.#####.#S#.#",
-    "#.#.....B.S.#.#",
-    "#.#.#####.S.#.#",
-    "#.........S.#.#",
-    "###############"
-  ],
-  [
-    "###############",
-    "#P..#..#..#..E#",
-    "#.#.#.###.#.#.#",
-    "#.#...#.#...#.#",
-    "#.#####D#####.#",
-    "#..K..#.#..K..#",
-    "###.#.#.#.#.###",
-    "#...#..T#...#.#",
-    "#.###S###S###.#",
-    "#...#..T..#...#",
-    "#.#.#####.#S#.#",
-    "#.#.....B.S.#.#",
-    "#.#.#####.S.#.#",
-    "#.........S.#.#",
-    "###############"
-  ],
-  [
-    "###############",
-    "#P..#..#..#..E#",
-    "#.#.#.###.#.#.#",
-    "#.#...#.#...#.#",
-    "#.#####D#####.#",
-    "#..K..#.#..K..#",
-    "###.#.#.#.#.###",
-    "#...#..T#...#.#",
-    "#.###S###S###.#",
-    "#...#..T..#...#",
-    "#.#.#####.#S#.#",
-    "#.#.....B.S.#.#",
-    "#.#.#####.S.#.#",
-    "#.........S.#.#",
-    "###############"
-  ],
-  [
-    "###############",
-    "#P..#..#..#..E#",
-    "#.#.#.###.#.#.#",
-    "#.#...#.#...#.#",
-    "#.#####D#####.#",
-    "#..K..#.#..K..#",
-    "###.#.#.#.#.###",
-    "#...#..T#...#.#",
-    "#.###S###S###.#",
-    "#...#..T..#...#",
-    "#.#.#####.#S#.#",
-    "#.#.....B.S.#.#",
-    "#.#.#####.S.#.#",
-    "#.........S.#.#",
-    "###############"
-  ],
-  [
-    "###############",
-    "#P..#..#..#..E#",
-    "#.#.#.###.#.#.#",
-    "#.#...#.#...#.#",
-    "#.#####D#####.#",
-    "#..K..#.#..K..#",
-    "###.#.#.#.#.###",
-    "#...#..T#...#.#",
-    "#.###S###S###.#",
-    "#...#..T..#...#",
-    "#.#.#####.#S#.#",
-    "#.#.....B.S.#.#",
-    "#.#.#####.S.#.#",
-    "#.........S.#.#",
-    "###############"
-  ]
-  ];
-
-  // ---------- Game Engine ----------
-  const TILE = 40; // logical tile size (scaled to canvas)
-  const ROWS = LEVELS[0].length;
-  const COLS = LEVELS[0][0].length;
-  const canvas = document.getElementById('game');
-  const ctx = canvas.getContext('2d');
-
-  // Scale canvas to device pixel ratio
-  function fitCanvas() {
-    const dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
-    const size = Math.floor(Math.min(window.innerWidth, 900));
-    canvas.style.width = size + 'px';
-    canvas.style.height = size + 'px';
-    canvas.width = Math.floor(size * dpr);
-    canvas.height = Math.floor(size * dpr);
-    ctx.setTransform(canvas.width / (COLS * TILE), 0, 0, canvas.height / (ROWS * TILE), 0, 0);
-  }
-  window.addEventListener('resize', fitCanvas);
-  fitCanvas();
-
-  const sounds = {
-    move: new Audio(),
-    block: new Audio(),
-    key: new Audio(),
-    door: new Audio(),
-    win: new Audio(),
-    toggle: new Audio(),
-  };
-  // Generate tiny beep sounds (no external assets)
-  function beep(type=440, time=0.06, vol=0.1){
-    try {
-      const actx = new (window.AudioContext||window.webkitAudioContext)();
-      const o = actx.createOscillator();
-      const g = actx.createGain();
-      o.type='sine'; o.frequency.value=type; g.gain.value=vol; o.connect(g); g.connect(actx.destination);
-      o.start();
-      setTimeout(()=>{o.stop(); actx.close();}, time*1000);
-    } catch(_){}
-  }
-  let muted = false;
-
-  // Game state
-  let levelIndex = 0;
-  let level = null; // 2D char array
-  let player = {x:0, y:0, keys:0};
-  let spikesDown = false; // toggled by switches
-  let history = []; // for undo
-
-  function loadProgress(){
-    try{ const p = JSON.parse(localStorage.getItem(storageKey)||'null'); if(p){ levelIndex = clamp(p.levelIndex||0, 0, LEVELS.length-1); } }catch(_){ }
-  }
-  function saveProgress(){
-    try{ localStorage.setItem(storageKey, JSON.stringify({levelIndex})); }catch(_){ }
-  }
-
-  function parseLevel(idx){
-    const lines = LEVELS[idx].map(r => r.padEnd(COLS, '#'));
-    const grid = lines.map(r => r.split(''));
-    player.keys = 0; spikesDown = false; history = [];
-    for(let y=0;y<ROWS;y++){
-      for(let x=0;x<COLS;x++){
-        if(grid[y][x]==='P'){ player.x=x; player.y=y; grid[y][x]='.'; }
-      }
-    }
-    return grid;
-  }
-
-  function at(x,y){ if(x<0||y<0||x>=COLS||y>=ROWS) return '#'; return level[y][x]; }
-  function setAt(x,y,v){ if(x<0||y<0||x>=COLS||y>=ROWS) return; level[y][x]=v; }
-
-  function isBlocked(ch){
-    if(ch==='#') return true;
-    if(ch==='D') return true; // door blocks until opened by stepping
-    if(ch==='S') return !spikesDown; // spikes up block
-    if(ch==='B') return true; // crates block unless pushed
-    return false;
-  }
-
-  function draw(){
-    // background tiles
-    for(let y=0;y<ROWS;y++){
-      for(let x=0;x<COLS;x++){
-        const px = x*TILE, py=y*TILE;
-        // floor
-        const isDark = (x+y)%2==0;
-        ctx.fillStyle = isDark? '#1a1f3d' : '#121735';
-        ctx.fillRect(px, py, TILE, TILE);
-        // grid subtle
-        ctx.fillStyle = 'rgba(255,255,255,0.04)';
-        ctx.fillRect(px, py+TILE-1, TILE, 1);
-        ctx.fillRect(px+TILE-1, py, 1, TILE);
-        const ch = at(x,y);
-        switch(ch){
-          case '#': drawWall(px,py); break;
-          case 'E': drawExit(px,py); break;
-          case 'K': drawKey(px,py); break;
-          case 'D': drawDoor(px,py); break;
-          case 'B': drawCrate(px,py); break;
-          case 'S': drawSpikes(px,py,spikesDown); break;
-          case 'T': drawSwitch(px,py); break;
-        }
-      }
-    }
-    drawPlayer(player.x*TILE, player.y*TILE);
-    // HUD
-    document.getElementById('levelChip').textContent = `Level ${levelIndex+1} / ${LEVELS.length}`;
-    document.getElementById('keysChip').textContent = `🔑 ${player.keys}`;
-  }
-
-  function drawWall(x,y){
-    const r=TILE; const g=ctx;
-    g.fillStyle = '#3d4484'; g.fillRect(x,y,r,r);
-    g.fillStyle = 'rgba(0,0,0,0.25)'; g.fillRect(x,y+r-6,r,6);
-    g.fillStyle = 'rgba(255,255,255,0.06)'; g.fillRect(x,y, r, 3);
-  }
-  function drawExit(x,y){
-    const g=ctx; g.fillStyle = '#133526'; g.fillRect(x,y,TILE,TILE); // tile
-    // door frame
-    g.fillStyle = '#5fe1a3';
-    g.fillRect(x+8,y+8,TILE-16,TILE-16);
-    g.fillStyle = '#0f1220'; g.fillRect(x+12,y+12,TILE-24,TILE-24);
-    // icon
-    g.fillStyle = '#5fe1a3'; g.fillRect(x+TILE-22,y+TILE/2-2,12,4);
-    g.beginPath(); g.moveTo(x+TILE-24,y+TILE/2-6); g.lineTo(x+TILE-10,y+TILE/2); g.lineTo(x+TILE-24,y+TILE/2+6); g.closePath(); g.fill();
-  }
-  function drawKey(x,y){ const g=ctx; g.fillStyle='#2b2f5a'; g.fillRect(x,y,TILE,TILE); g.fillStyle='#ffd166'; g.fillRect(x+10,y+18,20,6); g.fillRect(x+26,y+14,6,14); g.beginPath(); g.arc(x+14,y+21,6,0,Math.PI*2); g.fill(); }
-  function drawDoor(x,y){ const g=ctx; g.fillStyle='#1c2348'; g.fillRect(x,y,TILE,TILE); g.fillStyle='#7aa2ff'; g.fillRect(x+8,y+6,TILE-16,TILE-8); g.fillStyle='#0f1220'; g.fillRect(x+12,y+10,TILE-24,TILE-16); g.fillStyle='#7aa2ff'; g.fillRect(x+18,y+24,8,6); }
-  function drawCrate(x,y){ const g=ctx; g.fillStyle='#98a2ff'; g.fillRect(x+3,y+3,TILE-6,TILE-6); g.fillStyle='rgba(0,0,0,0.2)'; g.fillRect(x+3,y+TILE-9,TILE-6,6); }
-  function drawSpikes(x,y,down){ const g=ctx; g.fillStyle= down? '#24304f' : '#3a0f1e'; g.fillRect(x,y,TILE,TILE); if(!down){ g.fillStyle='#ff6b6b'; for(let i=0;i<3;i++){ g.beginPath(); const bx=x+6+i*10; g.moveTo(bx,y+28); g.lineTo(bx+6,y+12); g.lineTo(bx+12,y+28); g.closePath(); g.fill(); } } else { g.fillStyle='#506089'; g.fillRect(x+8,y+18,TILE-16,4);} }
-  function drawSwitch(x,y){ const g=ctx; g.fillStyle='#2a1f3f'; g.fillRect(x,y,TILE,TILE); g.fillStyle='#e1a3ff'; g.beginPath(); g.arc(x+20,y+20,8,0,Math.PI*2); g.fill(); }
-  function drawPlayer(x,y){ const g=ctx; // body
-    g.fillStyle = '#e8ecff'; g.beginPath(); g.arc(x+20,y+22,10,0,Math.PI*2); g.fill(); // visor
-    g.fillStyle = '#7aa2ff'; g.fillRect(x+12,y+14,16,6); }
-
-  function tryMove(dx,dy){
-    const nx = player.x+dx, ny=player.y+dy;
-    const target = at(nx,ny);
-
-    // pushing crates
-    if(target==='B'){
-      const bx=nx+dx, by=ny+dy; const behind=at(bx,by);
-      if(behind==='.' || behind==='E' || (behind==='S' && spikesDown) || behind==='T' || behind==='K'){
-        setAt(bx,by,'B'); setAt(nx,ny,'.'); // push
-      } else { if(!muted) beep(220,0.04,0.08); return; }
-    }
-
-    // doors need keys; opening consumes
-    if(target==='D'){
-      if(player.keys>0){ player.keys--; setAt(nx,ny,'.'); if(!muted) beep(660,0.05,0.08); }
-      else { if(!muted) beep(220,0.04,0.08); return; }
-    }
-
-    // spikes block if up
-    if(target==='S' && !spikesDown){ if(!muted) beep(220,0.04,0.08); return; }
-
-    // blocked tiles
-    if(isBlocked(at(nx,ny))){ if(!muted) beep(220,0.04,0.08); return; }
-
-    // record state for undo
-    history.push({ level: deepClone(level), player: {...player}, spikesDown });
-    if(history.length>200) history.shift();
-
-    // collect key
-    if(target==='K'){ player.keys++; setAt(nx,ny,'.'); if(!muted) beep(880,0.05,0.08); }
-
-    // toggle switch
-    if(target==='T'){ spikesDown = !spikesDown; if(!muted) beep(520,0.06,0.08); }
-
-    // move
-    player.x = nx; player.y = ny; if(!muted) beep(440,0.03,0.05);
-
-    // win
-    if(target==='E'){
-      if(!muted) beep(880,0.12,0.1);
-      levelIndex = Math.min(levelIndex+1, LEVELS.length-1);
-      saveProgress();
-      level = parseLevel(levelIndex);
+function loadLevel(levelIndex){
+  const level = levels[levelIndex];
+  player.moves = [];
+  keysHeld = [];
+  collectibles = 0;
+  for(let y=0;y<level.map.length;y++){
+    for(let x=0;x<level.map[y].length;x++){
+      if(level.map[y][x]=='P'){ player.x = x; player.y = y; }
     }
   }
-
-  function undo(){ if(history.length){ const s = history.pop(); level = s.level; player = s.player; spikesDown = s.spikesDown; draw(); } }
-
-  // Input handling
-  const keys = new Set();
-  document.addEventListener('keydown', (e)=>{
-    const k = e.key.toLowerCase();
-    if(['arrowup','w'].includes(k)){ tryMove(0,-1); }
-    if(['arrowdown','s'].includes(k)){ tryMove(0,1); }
-    if(['arrowleft','a'].includes(k)){ tryMove(-1,0); }
-    if(['arrowright','d'].includes(k)){ tryMove(1,0); }
-    if(k==='z'){ undo(); }
-    if(k==='r'){ resetLevel(); }
-    draw();
-  });
-
-  // Touch D-Pad
-  document.querySelectorAll('.dpad .key').forEach(btn=>{
-    btn.addEventListener('touchstart', (e)=>{ e.preventDefault(); const dir = btn.dataset.dir; handleDir(dir); draw(); }, {passive:false});
-    btn.addEventListener('click', ()=>{ const dir = btn.dataset.dir; handleDir(dir); draw(); });
-  });
-  function handleDir(dir){
-    if(dir==='up') tryMove(0,-1);
-    if(dir==='down') tryMove(0,1);
-    if(dir==='left') tryMove(-1,0);
-    if(dir==='right') tryMove(1,0);
-  }
-
-  // Swipe on board
-  let touchStart=null;
-  const boardEl = document.getElementById('board');
-  boardEl.addEventListener('touchstart', (e)=>{
-    if(e.touches.length===1){ touchStart = {x: e.touches[0].clientX, y: e.touches[0].clientY}; }
-  }, {passive:true});
-  boardEl.addEventListener('touchend', (e)=>{
-    if(!touchStart) return; const dx = e.changedTouches[0].clientX - touchStart.x; const dy = e.changedTouches[0].clientY - touchStart.y;
-    const ax=Math.abs(dx), ay=Math.abs(dy), TH=24; // small threshold
-    if(ax<TH && ay<TH) return; if(ax>ay){ tryMove(dx>0?1:-1,0); } else { tryMove(0, dy>0?1:-1); } draw(); touchStart=null;
-  });
-
-  // Buttons
-  document.getElementById('btnReset').onclick = ()=>{ resetLevel(); draw(); };
-  document.getElementById('btnPrev').onclick = ()=>{ levelIndex = Math.max(0, levelIndex-1); level=parseLevel(levelIndex); saveProgress(); draw(); };
-  document.getElementById('btnNext').onclick = ()=>{ levelIndex = Math.min(LEVELS.length-1, levelIndex+1); level=parseLevel(levelIndex); saveProgress(); draw(); };
-  document.getElementById('btnSkip').onclick = ()=>{ levelIndex = Math.min(LEVELS.length-1, levelIndex+1); level=parseLevel(levelIndex); saveProgress(); draw(); };
-  document.getElementById('btnUndo').onclick = ()=>{ undo(); draw(); };
-  document.getElementById('btnHint').onclick = ()=>{ alert('Hint: Look for keys to open doors. Use switches (●) to lower spikes (△). You can push crates (▣) to clear paths.'); };
-  document.getElementById('btnMute').onclick = (e)=>{ muted = !muted; e.target.textContent = muted? '🔇 Muted' : '🔈 Sound'; };
-
-  function resetLevel(){ level = parseLevel(levelIndex); }
-
-  // Boot
-  loadProgress();
-  level = parseLevel(levelIndex);
+  updateUI();
   draw();
+}
 
-  </script>
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const level = levels[currentLevel];
+  for(let y=0;y<level.map.length;y++){
+    for(let x=0;x<level.map[y].length;x++){
+      let cell = level.map[y][x];
+      let color = '#555';
+      if(cell=='W') color='#000';
+      if(cell=='K') color=level.objects.K;
+      if(cell=='D') color=level.objects.D;
+      if(cell=='C') color='#a52a2a';
+      if(cell=='S') color='#ff0';
+      if(cell=='X') color='#0f0';
+      ctx.fillStyle = color;
+      ctx.fillRect(x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE, TILE_SIZE);
+      ctx.strokeStyle='#111';
+      ctx.strokeRect(x*TILE_SIZE, y*TILE_SIZE, TILE_SIZE, TILE_SIZE);
+    }
+  }
+  ctx.fillStyle = player.color;
+  ctx.fillRect(player.x*TILE_SIZE, player.y*TILE_SIZE, TILE_SIZE, TILE_SIZE);
+}
+
+function updateUI(){
+  document.getElementById('levelInfo').innerText = 'Level: ' + (currentLevel+1);
+  document.getElementById('keysInfo').innerText = 'Keys: ' + (keysHeld.length>0 ? keysHeld.join(', ') : 'None');
+  document.getElementById('collectiblesInfo').innerText = 'Collected: ' + collectibles;
+}
+
+function movePlayer(dx,dy){
+  const level = levels[currentLevel];
+  let newX = player.x + dx;
+  let newY = player.y + dy;
+  if(newY<0 || newY>=level.map.length || newX<0 || newX>=level.map[0].length) return;
+  let target = level.map[newY][newX];
+  if(target=='W') return;
+  if(target=='C'){
+    let crateX = newX + dx;
+    let crateY = newY + dy;
+    if(level.map[crateY] && level.map[crateY][crateX]==' '){
+      level.map[crateY] = level.map[crateY].substring(0,crateX)+'C'+level.map[crateY].substring(crateX+1);
+      level.map[newY] = level.map[newY].substring(0,newX)+' '+level.map[newY].substring(newX+1);
+    } else return;
+  }
+  player.moves.push({x:player.x, y:player.y, keys:[...keysHeld], collectibles:collectibles});
+  player.x=newX; player.y=newY;
+  if(target=='K'){ keysHeld.push(level.objects.K); level.map[newY] = level.map[newY].substring(0,newX)+' '; }
+  if(target=='X'){ collectibles++; level.map[newY] = level.map[newY].substring(0,newX)+' '; }
+  if(target=='D'){ if(keysHeld.includes(level.objects.D)){ nextLevel(); return; } }
+  draw();
+  updateUI();
+}
+
+function undoMove(){
+  if(player.moves.length>0){
+    let last = player.moves.pop();
+    player.x=last.x; player.y=last.y; keysHeld=last.keys; collectibles=last.collectibles;
+    draw(); updateUI();
+  }
+}
+
+function resetLevel(){ loadLevel(currentLevel); }
+function hintLevel(){ alert('Hint: Use keys, push crates, activate switches, collect all items!'); }
+function nextLevel(){
+  currentLevel++;
+  if(currentLevel>=levels.length){ alert('You finished all levels!'); currentLevel=0; }
+  loadLevel(currentLevel);
+}
+
+window.addEventListener('keydown', e=>{
+  if(e.key=='ArrowUp') movePlayer(0,-1);
+  if(e.key=='ArrowDown') movePlayer(0,1);
+  if(e.key=='ArrowLeft') movePlayer(-1,0);
+  if(e.key=='ArrowRight') movePlayer(1,0);
+});
+
+canvas.addEventListener('touchstart', e=>{ player.touchStartX=e.touches[0].clientX; player.touchStartY=e.touches[0].clientY; });
+canvas.addEventListener('touchend', e=>{
+  let dx = e.changedTouches[0].clientX - player.touchStartX;
+  let dy = e.changedTouches[0].clientY - player.touchStartY;
+  if(Math.abs(dx)>Math.abs(dy)) movePlayer(dx>0?1:-1,0);
+  else movePlayer(0, dy>0?1:-1);
+});
+
+loadLevel(currentLevel);
+</script>
 </body>
 </html>
